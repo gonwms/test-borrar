@@ -1,0 +1,269 @@
+---
+import Icon from "../ui/Icon.astro";
+
+interface Props {
+  ticker?: boolean;
+  slidesPerView?: number | "auto";
+  freeMode?: boolean;
+  speed?: number;
+  pauseOnHover?: boolean;
+  autoplay?: number | false;
+  loop?: boolean;
+  navigation?: boolean;
+  pagination?: boolean;
+  arrowsPosition?: "bottom" | "sides";
+  arrowsX?: "in" | "out";
+  direction?: "left" | "right";
+  gap?: number | string;
+}
+
+const {
+  ticker: tickerProp = false,
+  freeMode = false,
+  slidesPerView = 1,
+  gap = 24,
+  autoplay = false,
+  loop = true,
+  navigation = false,
+  pagination = false,
+  speed,
+  pauseOnHover = true,
+  direction = "left",
+  arrowsPosition = "bottom",
+  arrowsX = "in",
+} = Astro.props;
+
+const ticker = tickerProp || freeMode;
+const id = `embla-${Math.random().toString(36).slice(2, 8)}`;
+const gapNum = typeof gap === "number" ? gap : 24;
+const slideSize =
+  slidesPerView === "auto"
+    ? "auto"
+    : slidesPerView === 1
+      ? "100%"
+      : `calc((100% - ${gapNum * ((slidesPerView as number) - 1)}px) / ${slidesPerView})`;
+
+const autoScrollSpeed = speed ?? 1;
+const showBottomBar = pagination || (arrowsPosition === "bottom" && navigation);
+const sidesPrevClass = arrowsX === "out" ? "-left-6" : "left-3";
+const sidesNextClass = arrowsX === "out" ? "-right-6" : "right-3";
+---
+
+<div class="max-w-full">
+  <div
+    class:list={[
+      "carrusel-wrapper relative ",
+      arrowsPosition === "sides" && arrowsX === "out" && "overflow-visible",
+    ]}
+  >
+    <div
+      id={id}
+      class="embla"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Carrusel"
+      data-ticker={String(ticker)}
+      data-speed={String(autoScrollSpeed)}
+      data-loop={String(loop)}
+      data-autoplay={autoplay !== false ? String(autoplay) : "false"}
+      data-pause-on-hover={String(pauseOnHover)}
+      data-navigation={String(navigation)}
+      data-direction={direction}
+      data-pagination={String(pagination)}
+      style={`--embla-gap: ${gapNum}px; --embla-slide-size: ${slideSize};`}
+    >
+      <div class="embla__viewport">
+        <div class="embla__container p-1">
+          <slot />
+        </div>
+      </div>
+    </div>
+
+    {
+      showBottomBar && (
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mt-10">
+          {pagination && (
+            <div id={`${id}-dots`} class="embla-pagination flex gap-2" />
+          )}
+          {arrowsPosition === "bottom" && navigation && (
+            <div class="flex gap-3">
+              <button class="carousel-nav-prev" aria-label="Anterior">
+                <Icon name="material-symbols:arrow-back" class="size-5" />
+              </button>
+              <button class="carousel-nav-next" aria-label="Siguiente">
+                <Icon name="material-symbols:arrow-forward" class="size-5" />
+              </button>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    {
+      arrowsPosition === "sides" && navigation && (
+        <>
+          <button
+            class:list={[
+              "carousel-nav-prev absolute top-1/2 -translate-y-1/2 z-10",
+              sidesPrevClass,
+            ]}
+            aria-label="Anterior"
+          >
+            <Icon name="material-symbols:arrow-back" class="size-5" />
+          </button>
+          <button
+            class:list={[
+              "carousel-nav-next absolute top-1/2 -translate-y-1/2 z-10",
+              sidesNextClass,
+            ]}
+            aria-label="Siguiente"
+          >
+            <Icon name="material-symbols:arrow-forward" class="size-5" />
+          </button>
+        </>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  import EmblaCarousel from "embla-carousel";
+  import AutoScroll from "embla-carousel-auto-scroll";
+
+  document
+    .querySelectorAll<HTMLElement>(".embla[data-ticker]")
+    .forEach((emblaEl) => {
+      const ticker = emblaEl.dataset.ticker === "true";
+      const speed = parseFloat(emblaEl.dataset.speed ?? "1");
+      const loop = emblaEl.dataset.loop !== "false";
+      const autoplayDelay =
+        emblaEl.dataset.autoplay !== "false"
+          ? parseInt(emblaEl.dataset.autoplay ?? "0")
+          : false;
+      const pauseOnHover = emblaEl.dataset.pauseOnHover === "true";
+      const navigation = emblaEl.dataset.navigation === "true";
+      const direction = emblaEl.dataset.direction ?? "left";
+      const hasPagination = emblaEl.dataset.pagination === "true";
+
+      const viewport = emblaEl.querySelector<HTMLElement>(".embla__viewport");
+      if (!viewport) return;
+
+      const plugins: Parameters<typeof EmblaCarousel>[2] = [];
+      let autoScrollPlugin: ReturnType<typeof AutoScroll> | null = null;
+
+      if (ticker) {
+        autoScrollPlugin = AutoScroll({
+          speed,
+          direction: direction === "right" ? "backward" : "forward",
+          stopOnInteraction: false,
+          stopOnMouseEnter: pauseOnHover,
+          startDelay: 0,
+        });
+        plugins.push(autoScrollPlugin);
+      }
+
+      const embla = EmblaCarousel(
+        viewport,
+        { loop, align: "start", dragFree: ticker },
+        plugins,
+      );
+
+      const wrapper = emblaEl.closest<HTMLElement>(".carrusel-wrapper");
+      if (!wrapper) return;
+
+      if (navigation) {
+        const prevBtn =
+          wrapper.querySelector<HTMLButtonElement>(".carousel-nav-prev");
+        const nextBtn =
+          wrapper.querySelector<HTMLButtonElement>(".carousel-nav-next");
+
+        if (ticker && autoScrollPlugin) {
+          const ap = autoScrollPlugin;
+          prevBtn?.addEventListener("click", () => {
+            ap.stop();
+            embla.scrollPrev();
+            setTimeout(() => ap.play(), 400);
+          });
+          nextBtn?.addEventListener("click", () => {
+            ap.stop();
+            embla.scrollNext();
+            setTimeout(() => ap.play(), 400);
+          });
+        } else {
+          prevBtn?.addEventListener("click", () => embla.scrollPrev());
+          nextBtn?.addEventListener("click", () => embla.scrollNext());
+
+          if (!loop) {
+            const updateNavState = () => {
+              if (prevBtn) prevBtn.disabled = !embla.canScrollPrev();
+              if (nextBtn) nextBtn.disabled = !embla.canScrollNext();
+            };
+            embla.on("init", updateNavState);
+            embla.on("select", updateNavState);
+            embla.on("reInit", updateNavState);
+            updateNavState();
+          }
+        }
+      }
+
+      if (!ticker && autoplayDelay !== false && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        let timer = setInterval(() => embla.scrollNext(), autoplayDelay);
+        if (pauseOnHover) {
+          wrapper.addEventListener("mouseenter", () => clearInterval(timer));
+          wrapper.addEventListener("mouseleave", () => {
+            timer = setInterval(() => embla.scrollNext(), autoplayDelay);
+          });
+        }
+      }
+
+      if (hasPagination) {
+        const dotsContainer =
+          wrapper.querySelector<HTMLElement>(".embla-pagination");
+        if (dotsContainer) {
+          const createDots = () => {
+            dotsContainer.innerHTML = "";
+            embla.scrollSnapList().forEach((_: number, i: number) => {
+              const dot = document.createElement("button");
+              dot.className = "embla-dot";
+              dot.setAttribute("aria-label", `Ir a slide ${i + 1}`);
+              dot.addEventListener("click", () => embla.scrollTo(i));
+              dotsContainer.appendChild(dot);
+            });
+          };
+
+          const updateDots = () => {
+            const dots =
+              dotsContainer.querySelectorAll<HTMLElement>(".embla-dot");
+            const selected = embla.selectedScrollSnap();
+            dots.forEach((dot, i) => {
+              dot.classList.toggle("is-active", i === selected);
+            });
+          };
+
+          embla.on("init", createDots);
+          embla.on("init", updateDots);
+          embla.on("select", updateDots);
+          embla.on("reInit", createDots);
+          embla.on("reInit", updateDots);
+          createDots();
+          updateDots();
+        }
+      }
+    });
+</script>
+
+<style>
+  .embla__viewport {
+    overflow: hidden;
+  }
+
+  .embla__container {
+    display: flex;
+    gap: var(--embla-gap, 0px);
+  }
+
+  :global(.embla__container > *) {
+    flex: 0 0 var(--embla-slide-size, 100%);
+    min-width: 0;
+  }
+</style>
