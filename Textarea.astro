@@ -1,0 +1,32 @@
+---
+interface Props {
+  name: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  value?: string;
+  error?: string;
+  rows?: number;
+  id?: string;
+  autocomplete?: string;
+}
+
+const { name, label, placeholder, required = false, value, error, rows = 4, id, autocomplete } = Astro.props;
+const inputId = id ?? `input-${Math.random().toString(36).substring(2, 11)}`;
+const errorId = error ? `${inputId}-error` : undefined;
+---
+
+<div class="flex flex-col gap-1.5">
+  <label for={inputId} class="text-sm font-semibold">{label}</label>
+  <textarea
+    id={inputId}
+    name={name}
+    placeholder={placeholder}
+    required={required}
+    rows={rows}
+    autocomplete={autocomplete}
+    aria-describedby={errorId}
+    class="w-full border rounded-md px-4 py-3 focus:outline-none transition-colors resize-y"
+  >{value}</textarea>
+  {error && <span id={errorId} class="text-xs text-red-500">{error}</span>}
+</div>
