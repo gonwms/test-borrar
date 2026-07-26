@@ -1,0 +1,97 @@
+---
+import NavDesktop from "./NavDesktop.astro";
+import NavMobile from "./NavMobile.astro";
+import Icon from "../ui/Icon.astro";
+import { getNavItems } from "../../data/navigation";
+
+interface Props {
+  siteName?: string;
+  logo?: string;
+  pathname?: string;
+}
+
+const { siteName = "Base Astro", logo, pathname = "/" } = Astro.props;
+
+const BASE = import.meta.env.BASE_URL;
+const navItems = getNavItems(BASE);
+const logoSrc = logo ? `${BASE}${logo}` : `${BASE}images/logo.svg`;
+---
+
+<!-- STATIC HEADER -->
+<header id="header-static" class="absolute top-0 left-0 right-0 z-20 py-5">
+  <m-container>
+    <m-row class="flex-row items-center justify-between">
+      <a href={BASE}>
+        <img src={logoSrc} alt={siteName} width="198" height="23" class="h-5 w-auto" />
+      </a>
+      <NavDesktop navItems={navItems} pathname={pathname} />
+      <button
+        id="burger-btn"
+        class="p-1 bg-transparent border-0 cursor-pointer md:hidden"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+      >
+        <Icon name="material-symbols:menu" class="size-8" />
+      </button>
+    </m-row>
+  </m-container>
+</header>
+
+<!-- STICKY HEADER -->
+<header
+  id="header-sticky"
+  class="fixed top-0 left-0 right-0 z-20 py-3 transition-all duration-300 ease-in-out -translate-y-full opacity-0 border-b bg-brand-bg"
+  aria-hidden="true"
+>
+  <m-container>
+    <m-row class="flex-row items-center justify-between">
+      <a href={BASE}>
+        <img src={`${BASE}images/logo.svg`} alt={siteName} width="198" height="23" class="h-5 w-auto" />
+      </a>
+      <NavDesktop navItems={navItems} pathname={pathname} />
+      <button
+        id="burger-btn-sticky"
+        class="p-1 bg-transparent border-0 cursor-pointer md:hidden"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+      >
+        <Icon name="material-symbols:menu" class="size-8" />
+      </button>
+    </m-row>
+  </m-container>
+</header>
+
+<!-- MOBILE MENU -->
+<NavMobile navItems={navItems} pathname={pathname} BASE={BASE} />
+
+<script>
+  const STICKY_THRESHOLD = 400;
+  const stickyHeader = document.getElementById("header-sticky")!;
+  const burgerBtnSticky = document.getElementById("burger-btn-sticky");
+  const burgerBtn = document.getElementById("burger-btn");
+
+  const updateSticky = () => {
+    if (window.scrollY >= STICKY_THRESHOLD) {
+      stickyHeader.classList.remove("-translate-y-full", "opacity-0");
+      stickyHeader.classList.add("translate-y-0", "opacity-100");
+      stickyHeader.removeAttribute("aria-hidden");
+    } else {
+      stickyHeader.classList.remove("translate-y-0", "opacity-100");
+      stickyHeader.classList.add("-translate-y-full", "opacity-0");
+      stickyHeader.setAttribute("aria-hidden", "true");
+    }
+  };
+
+  burgerBtnSticky?.addEventListener("click", () => burgerBtn?.click());
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        updateSticky();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+  updateSticky();
+</script>
