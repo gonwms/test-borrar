@@ -1,0 +1,33 @@
+{
+  "name": "base-astro",
+  "type": "module",
+  "version": "0.2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "set CLICK_TO_SOURCE=code && astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "pnpm run build && gh-pages -d dist"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/sitemap": "^0.1.0",
+    "@iconify-json/material-symbols": "^1.2.0",
+    "@iconify-json/simple-icons": "^1.2.86",
+    "@vercel/kv": "^3.0.0",
+    "astro": "^5.8.0",
+    "astro-icon": "^1.1.5",
+    "embla-carousel": "^8.5.1",
+    "embla-carousel-auto-scroll": "^8.5.1",
+    "lenis": "^1.1.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.6",
+    "astro-click-to-source": "^0.1.5",
+    "gh-pages": "^6.3.0",
+    "tailwindcss": "^4.1.6"
+  }
+}
