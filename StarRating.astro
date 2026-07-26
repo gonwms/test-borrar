@@ -1,0 +1,206 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props {
+  ratingValue: number;
+  reviewCount: number;
+  postUrl: string;
+  endpoint?: string;
+}
+
+const {
+  ratingValue,
+  reviewCount,
+  postUrl,
+  endpoint = "/api/votes",
+} = Astro.props;
+
+const full = Math.floor(ratingValue);
+const half = ratingValue % 1 >= 0.5 ? 1 : 0;
+const empty = 5 - full - half;
+
+type StarType = "full" | "half" | "empty";
+const stars: StarType[] = [
+  ...Array(full).fill("full"),
+  ...Array(half).fill("half"),
+  ...Array(empty).fill("empty"),
+];
+
+const ariaLabel =
+  reviewCount > 0
+    ? `${ratingValue} de 5 estrellas, ${reviewCount} votos`
+    : "Sin calificaciones aún";
+---
+
+<div
+  class="star-rating inline-flex items-center gap-2"
+  data-post-url={postUrl}
+  data-endpoint={endpoint}
+>
+  <div class="stars flex gap-0.5 shrink-0" role="img" aria-label={ariaLabel}>
+    {
+      stars.map((type, i) => (
+        <span class="star-slot inline-flex" data-index={i} data-type={type}>
+          {type === "half" ? (
+            <Icon name="material-symbols:star-half" class="sr-star text-xl leading-none select-none text-amber-400" />
+          ) : (
+            <>
+              <Icon
+                name="material-symbols:star"
+                class:list={[
+                  "sr-filled text-xl leading-none select-none text-amber-400",
+                  type !== "full" ? "sr-hide" : "",
+                ]}
+              />
+              <Icon
+                name="material-symbols:star-outline"
+                class:list={[
+                  "sr-outline text-xl leading-none select-none",
+                  type === "full" ? "sr-hide" : "",
+                  type !== "full" ? "text-neutral-300" : "text-amber-400",
+                ]}
+              />
+            </>
+          )}
+        </span>
+      ))
+    }
+  </div>
+
+  <span class="rating-meta text-sm text-neutral-500 leading-none min-w-0 truncate">
+    {reviewCount > 0 ? `${ratingValue} (${reviewCount} votos)` : "votar"}
+  </span>
+
+  <span class="vote-feedback text-xs hidden"></span>
+</div>
+
+<style>
+  :global(.sr-hide) {
+    display: none;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var RATING_MAP = [4.2, 4.4, 4.6, 4.8, 5.0];
+
+    document.querySelectorAll(".star-rating").forEach(function (widget) {
+      var postUrl = widget.dataset.postUrl;
+      var endpoint = widget.dataset.endpoint || "/api/votes";
+      var starsEl = widget.querySelector(".stars");
+      var slots = Array.from(starsEl.querySelectorAll(".star-slot"));
+      var meta = widget.querySelector(".rating-meta");
+      var feedback = widget.querySelector(".vote-feedback");
+
+      if (localStorage.getItem("star-voted-" + postUrl) === "1") {
+        meta.textContent = meta.textContent.replace("· votá", "");
+        return;
+      }
+
+      starsEl.setAttribute("role", "radiogroup");
+      starsEl.setAttribute("aria-label", "Calificá este artículo");
+      starsEl.style.cursor = "pointer";
+
+      function fillSlot(slot) {
+        var filled = slot.querySelector(".sr-filled");
+        var outline = slot.querySelector(".sr-outline");
+        if (filled) filled.classList.remove("sr-hide");
+        if (outline) {
+          outline.classList.add("sr-hide");
+          outline.classList.add("text-amber-400");
+          outline.classList.remove("text-neutral-300");
+        }
+      }
+
+      function emptySlot(slot) {
+        var filled = slot.querySelector(".sr-filled");
+        var outline = slot.querySelector(".sr-outline");
+        if (filled) filled.classList.add("sr-hide");
+        if (outline) {
+          outline.classList.remove("sr-hide");
+          outline.classList.remove("text-amber-400");
+          outline.classList.add("text-neutral-300");
+        }
+      }
+
+      function applyFill(upTo) {
+        slots.forEach(function (slot, i) {
+          if (slot.dataset.type === "half") return;
+          i <= upTo ? fillSlot(slot) : emptySlot(slot);
+        });
+      }
+
+      function restoreOriginal() {
+        slots.forEach(function (slot) {
+          var type = slot.dataset.type;
+          if (type === "half") return;
+          var filled = slot.querySelector(".sr-filled");
+          var outline = slot.querySelector(".sr-outline");
+          if (type === "full") {
+            if (filled) filled.classList.remove("sr-hide");
+            if (outline) outline.classList.add("sr-hide");
+          } else {
+            if (filled) filled.classList.add("sr-hide");
+            if (outline) {
+              outline.classList.remove("sr-hide");
+              outline.classList.remove("text-amber-400");
+              outline.classList.add("text-neutral-300");
+            }
+          }
+        });
+      }
+
+      slots.forEach(function (slot, idx) {
+        if (slot.dataset.type === "half") return;
+        slot.addEventListener("mouseover", function () {
+          applyFill(idx);
+        });
+      });
+      starsEl.addEventListener("mouseleave", restoreOriginal);
+
+      slots.forEach(function (slot, idx) {
+        if (slot.dataset.type === "half") return;
+        slot.addEventListener("click", async function () {
+          slots.forEach(function (s) {
+            s.style.pointerEvents = "none";
+          });
+          starsEl.style.cursor = "default";
+
+          try {
+            var res = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: postUrl, rating: RATING_MAP[idx] }),
+            });
+
+            if (res.ok) {
+              localStorage.setItem("star-voted-" + postUrl, "1");
+              applyFill(idx);
+              starsEl.setAttribute("role", "img");
+              meta.classList.add("hidden");
+              feedback.textContent = "¡Gracias!";
+              feedback.className = "vote-feedback text-xs text-emerald-600";
+              setTimeout(function () {
+                feedback.classList.add("hidden");
+              }, 2500);
+            } else {
+              throw new Error("server");
+            }
+          } catch {
+            restoreOriginal();
+            slots.forEach(function (s) {
+              s.style.pointerEvents = "";
+            });
+            starsEl.style.cursor = "pointer";
+            feedback.textContent = "Error al enviar";
+            feedback.className = "vote-feedback text-xs text-red-500";
+            setTimeout(function () {
+              feedback.className = "vote-feedback text-xs hidden";
+              feedback.textContent = "";
+            }, 3000);
+          }
+        });
+      });
+    });
+  })();
+</script>
