@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0f172a"/>
+  <text x="600" y="290" text-anchor="middle" font-family="system-ui, sans-serif" font-size="64" font-weight="800" fill="#e2e8f0">Base Astro</text>
+  <text x="600" y="360" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" fill="#94a3b8">Template Astro 5 con Tailwind v4, SEO y componentes UI</text>
+</svg>
