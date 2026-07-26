@@ -1,0 +1,179 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Navigation from "../../components/layout/Navigation.astro";
+import Footer from "../../components/layout/Footer.astro";
+import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  page: {
+    data: CollectionEntry<"blog">[];
+    url: { prev?: string; next?: string };
+    currentPage: number;
+    lastPage: number;
+    start: number;
+    end: number;
+    total: number;
+  };
+}
+
+const { page } = Astro.props;
+const posts = page.data;
+
+function formatDate(date: Date): string {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+export async function getStaticPaths({ paginate }: { paginate: Function }) {
+  const allPosts = await getCollection("blog", ({ data }) => data.status === "published");
+  allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return paginate(allPosts, { pageSize: 6 });
+}
+---
+
+<Layout
+  title="Blog"
+  description="Blog de Base Astro — noticias, análisis y opinión sobre política y economía."
+  ogType="website"
+>
+  <Navigation />
+
+  <main class="pt-32 pb-16">
+    <m-container>
+      <header class="mb-12">
+        <h1 class="heading text-4xl md:text-5xl mb-4">Blog</h1>
+        <p class="text-lg text-brand-foreground/60 max-w-2xl">
+          Noticias, análisis y opinión sobre política y economía.
+        </p>
+      </header>
+
+      <nav class="flex gap-3 mb-10 flex-wrap" aria-label="Filtrar por categoría">
+        <a
+          href="/blog/"
+          data-filter=""
+          class="filter-pill px-5 py-2 rounded-full text-sm font-medium transition-colors no-underline bg-brand-foreground text-brand-bg"
+        >
+          Todas
+        </a>
+        <a
+          href="/blog/?categoria=politica"
+          data-filter="politica"
+          class="filter-pill px-5 py-2 rounded-full text-sm font-medium transition-colors no-underline bg-brand-beige text-brand-foreground/70 hover:text-brand-foreground"
+        >
+          Política
+        </a>
+        <a
+          href="/blog/?categoria=economia"
+          data-filter="economia"
+          class="filter-pill px-5 py-2 rounded-full text-sm font-medium transition-colors no-underline bg-brand-beige text-brand-foreground/70 hover:text-brand-foreground"
+        >
+          Economía
+        </a>
+      </nav>
+
+      {
+        posts.length === 0 ? (
+          <p id="no-results" class="text-brand-foreground/50 text-lg py-16 text-center hidden">
+            No se encontraron artículos en esta categoría.
+          </p>
+        ) : (
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3" id="posts-grid">
+            {posts.map((post) => (
+              <a
+                href={`/blog/${post.id}/`}
+                data-category={post.data.category}
+                class="group block bg-brand-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow no-underline border border-brand-beige"
+              >
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 bg-brand-beige text-brand-foreground/70">
+                  {post.data.category === "politica" ? "Política" : "Economía"}
+                </span>
+                <h2 class="heading text-xl mb-2 text-brand-foreground group-hover:underline">
+                  {post.data.title}
+                </h2>
+                <p class="text-sm text-brand-foreground/50 mb-4 line-clamp-3">
+                  {post.data.description}
+                </p>
+                <div class="flex items-center gap-3 text-xs text-brand-foreground/40">
+                  <span>{post.data.author}</span>
+                  <span>·</span>
+                  <time datetime={post.data.date.toISOString().slice(0, 10)}>
+                    {formatDate(post.data.date)}
+                  </time>
+                </div>
+              </a>
+            ))}
+          </div>
+        )
+      }
+
+      {
+        page.lastPage > 1 && (
+          <nav class="flex items-center justify-between mt-12 pt-8 border-t border-brand-beige" aria-label="Paginación">
+            {
+              page.url.prev ? (
+                <a
+                  href={page.url.prev}
+                  class="inline-flex items-center gap-2 text-sm font-medium text-brand-foreground/70 hover:text-brand-foreground no-underline transition-colors"
+                >
+                  ← Anterior
+                </a>
+              ) : (
+                <span />
+              )
+            }
+            <span class="text-sm text-brand-foreground/40">
+              Pág. {page.currentPage} de {page.lastPage}
+            </span>
+            {
+              page.url.next ? (
+                <a
+                  href={page.url.next}
+                  class="inline-flex items-center gap-2 text-sm font-medium text-brand-foreground/70 hover:text-brand-foreground no-underline transition-colors"
+                >
+                  Siguiente →
+                </a>
+              ) : (
+                <span />
+              )
+            }
+          </nav>
+        )
+      }
+    </m-container>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const active = params.get("categoria") ?? "";
+
+  document.querySelectorAll(".filter-pill").forEach((pill) => {
+    const filter = pill.getAttribute("data-filter") ?? "";
+    if (filter === active) {
+      pill.classList.remove("bg-brand-beige", "text-brand-foreground/70");
+      pill.classList.add("bg-brand-foreground", "text-brand-bg");
+    }
+  });
+
+  if (active) {
+    const cards = document.querySelectorAll("[data-category]");
+    let visible = 0;
+    cards.forEach((card) => {
+      if (card.getAttribute("data-category") === active) {
+        card.classList.remove("hidden");
+        visible++;
+      } else {
+        card.classList.add("hidden");
+      }
+    });
+    if (visible === 0) {
+      document.getElementById("posts-grid")?.classList.add("hidden");
+      document.getElementById("no-results")?.classList.remove("hidden");
+    }
+  }
+</script>
