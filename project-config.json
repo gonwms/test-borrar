@@ -1,0 +1,15 @@
+{
+  "name": "test borrar",
+  "slug": "test-borrar",
+  "type": "astro, taildwind, astro icons",
+  "template": "Astro Page",
+  "deployment_target": "none",
+  "deployment_platforms": [],
+  "component_ids": [],
+  "agent_ids": [],
+  "locales": [
+    "es"
+  ],
+  "created_from_template": "dpad-templates",
+  "created_at": "2026-07-26T17:18:42.522Z"
+}
