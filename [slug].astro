@@ -1,0 +1,97 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Navigation from "../../components/layout/Navigation.astro";
+import Footer from "../../components/layout/Footer.astro";
+import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  entry: CollectionEntry<"blog">;
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+
+function formatDate(date: Date): string {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { entry: post },
+  }));
+}
+---
+
+<Layout
+  title={entry.data.title}
+  description={entry.data.description}
+  ogType="article"
+  noindex={entry.data.status === "draft"}
+>
+  <Navigation />
+
+  <main class="pt-32 pb-16">
+    <m-container>
+      <article class="max-w-3xl mx-auto">
+        <header class="mb-10">
+          <div class="flex items-center gap-3 mb-4 flex-wrap">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-brand-beige text-brand-foreground/70">
+              {entry.data.category === "politica" ? "Política" : "Economía"}
+            </span>
+            {
+              entry.data.status === "draft" && (
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-brand-draft-bg text-brand-draft-text">
+                  Borrador — no publicado
+                </span>
+              )
+            }
+          </div>
+          <h1 class="heading text-3xl md:text-4xl lg:text-5xl mb-4">
+            {entry.data.title}
+          </h1>
+          <p class="text-lg text-brand-foreground/60 mb-6">
+            {entry.data.description}
+          </p>
+          <div class="flex items-center gap-3 text-sm text-brand-foreground/40 border-b border-brand-beige pb-6">
+            <span>{entry.data.author}</span>
+            <span>·</span>
+            <time datetime={entry.data.date.toISOString().slice(0, 10)}>
+              {formatDate(entry.data.date)}
+            </time>
+          </div>
+        </header>
+
+        {
+          entry.data.status === "draft" && (
+            <div class="bg-brand-draft-bg border border-brand-draft-border rounded-xl p-4 mb-10 text-center">
+              <p class="text-brand-draft-text text-sm font-medium">
+                ⚠️ Borrador — no publicado. Este artículo es un borrador y no aparece en el listado del blog.
+              </p>
+            </div>
+          )
+        }
+
+        <div class="prose prose-lg max-w-none">
+          <Content />
+        </div>
+
+        <footer class="mt-12 pt-8 border-t border-brand-beige">
+          <a
+            href="/blog/"
+            class="inline-flex items-center gap-2 text-sm font-medium text-brand-foreground/70 hover:text-brand-foreground no-underline transition-colors"
+          >
+            ← Volver al blog
+          </a>
+        </footer>
+      </article>
+    </m-container>
+  </main>
+
+  <Footer />
+</Layout>
