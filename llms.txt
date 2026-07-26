@@ -1,0 +1,16 @@
+# Base Astro
+
+> Template base para proyectos Astro 5 con Tailwind v4, SEO y componentes UI reutilizables.
+
+## Páginas
+
+- [Inicio](/): Landing page con carrusel, FAQ, formulario de contacto y secciones de contenido.
+- [Contacto](/contacto): Página de contacto con formulario completo (Input, Select, Textarea, Checkbox).
+
+## Stack
+
+- Astro 5 con TypeScript estricto
+- Tailwind CSS v4 (@tailwindcss/vite)
+- Lenis (smooth scroll)
+- Embla Carousel
+- Google Material Symbols
