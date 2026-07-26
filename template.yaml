@@ -1,0 +1,10 @@
+name: Astro Page
+description: Astro, High Performance, Seo
+version: 1.0.0
+repo_template_url: https://github.com/gonwms/dpad-templates
+stack:
+  - Astro, Taildwind, Astro icons
+tags:
+  - Astro
+dependencies: []
+is_public: false
