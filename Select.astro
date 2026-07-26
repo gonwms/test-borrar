@@ -1,0 +1,111 @@
+---
+import Icon from "../ui/Icon.astro";
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  name: string;
+  label: string;
+  options: Option[];
+  required?: boolean;
+  value?: string;
+  error?: string;
+  id?: string;
+}
+
+const { name, label, options, required = false, value, error, id } = Astro.props;
+const inputId = id ?? `select-${Math.random().toString(36).substring(2, 11)}`;
+const selectedLabel = options.find((o: Option) => o.value === value)?.label ?? "";
+const errorId = error ? `${inputId}-error` : undefined;
+---
+
+<div class="flex flex-col gap-1.5">
+  <label class="text-sm font-semibold">{label}</label>
+  <div class="relative">
+    <input type="hidden" id={inputId} name={name} value={value ?? ""} required={required} data-select-input autocomplete="off" />
+    <button
+      type="button"
+      class="w-full flex items-center justify-between border rounded-md px-4 py-3 bg-brand-bg focus:outline-none transition-colors cursor-pointer"
+      data-select-trigger={inputId}
+      aria-haspopup="listbox"
+      aria-expanded="false"
+      aria-describedby={errorId}
+    >
+      <span data-select-label={inputId} class:list={[!selectedLabel ? "opacity-40" : ""]}>
+        {selectedLabel || "Seleccionar..."}
+      </span>
+      <Icon name="material-symbols:arrow-drop-down" class="size-5 transition-transform duration-200 shrink-0" data-select-icon={inputId} />
+    </button>
+
+    <ul
+      class="absolute z-50 mt-1 w-full border rounded-md shadow-xl overflow-hidden bg-brand-bg"
+      role="listbox"
+      data-select-dropdown={inputId}
+      hidden
+    >
+      {options.map((o: Option) => (
+        <li
+          role="option"
+          data-value={o.value}
+          data-select-option={inputId}
+          class="px-4 py-3 text-sm cursor-pointer hover:bg-brand-beige/60"
+          aria-selected={o.value === value ? "true" : "false"}
+        >
+          {o.label}
+        </li>
+      ))}
+    </ul>
+  </div>
+  {error && <span id={errorId} class="text-xs text-red-500">{error}</span>}
+</div>
+
+<script>
+  function initSelect(trigger: Element) {
+    const id = trigger.getAttribute("data-select-trigger")!;
+    const dropdown = document.querySelector(`[data-select-dropdown="${id}"]`) as HTMLElement;
+    const input = document.getElementById(id) as HTMLInputElement;
+    const labelEl = document.querySelector(`[data-select-label="${id}"]`) as HTMLElement;
+    const iconEl = document.querySelector(`[data-select-icon="${id}"]`) as HTMLElement;
+    if (!dropdown || !input || !labelEl) return;
+
+    const open = () => {
+      dropdown.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      iconEl?.classList.add("rotate-180");
+    };
+
+    const close = () => {
+      dropdown.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      iconEl?.classList.remove("rotate-180");
+    };
+
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.hidden ? open() : close();
+    });
+
+    dropdown.querySelectorAll(`[data-select-option="${id}"]`).forEach((option) => {
+      option.addEventListener("click", () => {
+        const val = option.getAttribute("data-value") ?? "";
+        input.value = val;
+        labelEl.textContent = option.textContent?.trim() ?? "";
+        labelEl.classList.remove("opacity-40");
+        dropdown.querySelectorAll(`[data-select-option="${id}"]`).forEach((o) => {
+          o.setAttribute("aria-selected", o === option ? "true" : "false");
+          o.classList.toggle("bg-brand-beige/60", o === option);
+        });
+        close();
+      });
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!trigger.contains(e.target as Node)) close();
+    });
+  }
+
+  document.querySelectorAll("[data-select-trigger]").forEach(initSelect);
+</script>
