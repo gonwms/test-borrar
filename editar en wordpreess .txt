@@ -1,0 +1,31 @@
+Agregar en functions del tema: 
+
+
+
+// ------------------------------------ AGREGADO ------------------------------------ 
+
+/*  AGREGAR RANKMATH al pedido por API
+**  así se usa: se agrega ?rankmath=1 
+**  https://mediabrosonline.com/wp-json/wp/v2/pages/36?rankmath=1
+*/ 
+add_action('rest_api_init', function () {
+    register_rest_field(['page', 'post'], 'seo_rankmath', [
+        'get_callback' => function ($post_array) {
+            $id = $post_array['id'];
+
+            // Traemos los metas directamente. 
+            // Si el campo está vacío en Rank Math, devolverá un string vacío o false.
+            return [
+                'title'          => get_post_meta($id, 'rank_math_title', true),
+                'description'    => get_post_meta($id, 'rank_math_description', true),
+                'canonical'      => get_post_meta($id, 'rank_math_canonical', true),
+                'robots'         => get_post_meta($id, 'rank_math_robots', true),
+                'og_title'       => get_post_meta($id, 'rank_math_facebook_title', true),
+                'og_description' => get_post_meta($id, 'rank_math_facebook_description', true),
+                'og_image'       => get_post_meta($id, 'rank_math_facebook_image', true),
+                'twitter_image'  => get_post_meta($id, 'rank_math_twitter_image', true),
+            ];
+        },
+        'schema' => null,
+    ]);
+});
