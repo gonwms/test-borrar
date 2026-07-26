@@ -1,0 +1,23 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  class?: string;
+  width?: number;
+  height?: number;
+}
+
+const { src, alt = "", class: className, width, height } = Astro.props;
+---
+
+<img
+  src={src}
+  alt={alt}
+  {width}
+  {height}
+  role={!alt ? "presentation" : undefined}
+  class:list={[
+    className,
+    "ImageBackground absolute pointer-events-none  object-cover",
+  ]}
+/>
