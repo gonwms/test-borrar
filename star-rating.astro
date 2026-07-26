@@ -1,0 +1,119 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Navigation from "../../components/layout/Navigation.astro";
+import Footer from "../../components/layout/Footer.astro";
+import StarRating from "../../components/ui/StarRating.astro";
+import { getRating } from "../../lib/rating";
+
+const title = "Demo: Star Rating con Rich Snippets";
+const description =
+  "Ejemplo de integración del componente StarRating con JSON-LD para rich snippets de Google.";
+const canonicalURL = Astro.url.href;
+const siteUrl = Astro.site?.toString() ?? "http://localhost:4321";
+
+const { ratingValue, reviewCount } = await getRating(canonicalURL, siteUrl);
+
+const ogImage = `${import.meta.env.BASE_URL}images/og-image-1200x630.svg`;
+const ogImageAbsolute = new URL(ogImage, Astro.site ?? Astro.url).href;
+
+const productSchema =
+  reviewCount > 0
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: title,
+        description,
+        image: ogImageAbsolute,
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue,
+          reviewCount,
+          bestRating: 5,
+          worstRating: 1,
+        },
+      }
+    : null;
+
+const safeJson = productSchema
+  ? JSON.stringify(productSchema).replace(/<\/script>/gi, "<\\/script>")
+  : null;
+---
+
+<Layout
+  title={title}
+  description={description}
+  ogImage={ogImage}
+  canonicalURL={canonicalURL}
+  ogType="website"
+>
+  {safeJson && (
+    <script is:inline type="application/ld+json" set:html={safeJson} />
+  )}
+
+  <Navigation siteName="Mi Proyecto" pathname="/demo/star-rating" />
+
+  <section class="pt-40 pb-24">
+    <m-container>
+      <m-row class="flex-col max-w-2xl mx-auto gap-10">
+
+        <div class="flex flex-col gap-3">
+          <span class="text-xs font-medium uppercase tracking-widest opacity-50">Componente</span>
+          <h1 class="text-4xl font-display font-bold">Star Rating</h1>
+          <p class="opacity-60 leading-relaxed">
+            Sistema de calificación con Rich Snippets. Los votos se persisten en
+            KV (Vercel o Cloudflare Pages). El rebuild semanal vía GitHub Actions
+            actualiza el JSON-LD en el HTML estático.
+          </p>
+        </div>
+
+        <!-- Demo 1: con datos (simula ratings existentes) -->
+        <div class="rounded-2xl border p-8 flex flex-col gap-4">
+          <span class="text-xs font-medium uppercase tracking-widest opacity-40">Con ratings</span>
+          <h2 class="text-xl font-display font-semibold">Guía de Tailwind v4 para principiantes</h2>
+          <p class="text-sm opacity-60">
+            Todo lo que necesitás saber para migrar de Tailwind v3 a v4 y sacarle
+            el máximo provecho a los tokens @theme.
+          </p>
+          <StarRating
+            ratingValue={ratingValue > 0 ? ratingValue : 4.8}
+            reviewCount={reviewCount > 0 ? reviewCount : 142}
+            postUrl={canonicalURL}
+          />
+        </div>
+
+        <!-- Demo 2: sin ratings (estado inicial) -->
+        <div class="rounded-2xl border p-8 flex flex-col gap-4">
+          <span class="text-xs font-medium uppercase tracking-widest opacity-40">Sin ratings (estado inicial)</span>
+          <h2 class="text-xl font-display font-semibold">Artículo nuevo sin votos</h2>
+          <p class="text-sm opacity-60">
+            Cuando reviewCount es 0 el componente muestra el estado de "primer voto"
+            y no genera JSON-LD (Google lo ignoraría de todas formas).
+          </p>
+          <StarRating
+            ratingValue={0}
+            reviewCount={0}
+            postUrl={canonicalURL + "?demo=new"}
+          />
+        </div>
+
+        <!-- Estado del JSON-LD -->
+        <div class="rounded-xl bg-neutral-50 border p-6 text-sm font-mono">
+          <p class="text-xs uppercase tracking-widest opacity-40 mb-3">JSON-LD inyectado</p>
+          {safeJson ? (
+            <pre class="whitespace-pre-wrap break-all opacity-70 text-xs">{safeJson}</pre>
+          ) : (
+            <p class="opacity-40">reviewCount === 0 → sin JSON-LD (correcto)</p>
+          )}
+        </div>
+
+      </m-row>
+    </m-container>
+  </section>
+
+  <Footer siteName="Mi Proyecto">
+    <nav slot="links" class="flex flex-row gap-6 text-sm opacity-70">
+      <a href="/">Inicio</a>
+      <a href="/demo/star-rating">Star Rating</a>
+    </nav>
+  </Footer>
+</Layout>
