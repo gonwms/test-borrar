@@ -1,0 +1,119 @@
+---
+import Icon from "../ui/Icon.astro";
+import type { NavItem } from "../../data/navigation";
+
+interface Props {
+  navItems: NavItem[];
+  pathname: string;
+}
+
+const { navItems, pathname } = Astro.props;
+
+const isActive = (href: string) => {
+  const normalized = href ? (href.endsWith("/") ? href : `${href}/`) : "/";
+  const current    = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  return current === normalized;
+};
+---
+
+<nav class="items-center hidden gap-8 md:flex">
+
+  {navItems.map((item) => item.dropdown ? (
+
+    <div class="relative" data-dropdown-wrap>
+      <a
+        href={item.href}
+        data-dropdown-trigger
+        aria-expanded="false"
+        aria-haspopup="true"
+        class:list={["flex items-center gap-1", isActive(item.href!) ? "font-semibold" : ""]}
+      >
+        {item.label}
+        <span data-dropdown-chevron class="flex items-center transition-transform duration-200">
+          <Icon name="material-symbols:keyboard-arrow-down" class="size-4" />
+        </span>
+      </a>
+
+      <div
+        data-dropdown
+        role="menu"
+        class="absolute mt-4 transition-all duration-200 origin-top scale-95 -translate-x-1/2 opacity-0 pointer-events-none left-1/2 top-10 w-140"
+      >
+        <div class="relative p-4 border rounded-2xl shadow-lg bg-brand-bg">
+          <ul class="grid grid-cols-2 gap-x-8 gap-y-2" role="none">
+            {item.children?.map((svc) => (
+              <li role="none">
+                <a href={svc.href} role="menuitem" class="flex items-center gap-3 px-3 py-2.5 rounded-full transition-colors no-underline text-sm">
+                  <div class="flex items-center justify-center rounded-full p-1 shrink-0">
+                    <Icon name={svc.icon} class="size-8" />
+                  </div>
+                  <span class="text-lg font-semibold font-display whitespace-nowrap">
+                    {svc.label}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+  ) : (
+
+    <a
+      href={item.href}
+      class:list={[isActive(item.href!) ? "font-semibold" : ""]}
+    >
+      {item.label}
+    </a>
+
+  ))}
+
+</nav>
+
+<script>
+  const OPEN   = ["opacity-100", "pointer-events-auto", "scale-100"];
+  const CLOSED = ["opacity-0",   "pointer-events-none", "scale-95" ];
+
+  document.querySelectorAll<HTMLElement>("[data-dropdown-wrap]").forEach((wrap) => {
+    const trigger  = wrap.querySelector<HTMLElement>("[data-dropdown-trigger]")!;
+    const dropdown = wrap.querySelector<HTMLElement>("[data-dropdown]")!;
+    const chevron  = wrap.querySelector<HTMLElement>("[data-dropdown-chevron]")!;
+
+    let closeTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const cancelClose = () => {
+      if (closeTimer !== null) { clearTimeout(closeTimer); closeTimer = null; }
+    };
+
+    const openDropdown = () => {
+      cancelClose();
+      dropdown.classList.remove(...CLOSED);
+      dropdown.classList.add(...OPEN);
+      trigger.setAttribute("aria-expanded", "true");
+      chevron.classList.add("rotate-180");
+    };
+
+    const closeDropdown = () => {
+      cancelClose();
+      dropdown.classList.remove(...OPEN);
+      dropdown.classList.add(...CLOSED);
+      trigger.setAttribute("aria-expanded", "false");
+      chevron.classList.remove("rotate-180");
+    };
+
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.contains("opacity-0") ? openDropdown() : closeDropdown();
+    });
+
+    wrap.addEventListener("mouseenter", () => { cancelClose(); openDropdown(); });
+    wrap.addEventListener("mouseleave", () => { closeTimer = setTimeout(closeDropdown, 200); });
+
+    document.addEventListener("click",  (e) => { !wrap.contains(e.target as Node) && closeDropdown(); });
+    document.addEventListener("keydown", (e) => { e.key === "Escape" && closeDropdown(); });
+
+    dropdown.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeDropdown));
+  });
+</script>
