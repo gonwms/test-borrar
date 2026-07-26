@@ -1,0 +1,45 @@
+---
+interface Props {
+  siteName?: string;
+}
+
+const { siteName = "Base Astro" } = Astro.props;
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<footer id="footer">
+  <m-container>
+    <m-row
+      class="flex-col md:flex-row items-center justify-between py-12 gap-8"
+    >
+      <m-col class="flex flex-col items-center md:items-start gap-4">
+        <slot name="logo">
+          <img src={`${BASE}/images/logo.svg`} alt={siteName} width="198" height="23" class="h-5 w-auto" />
+        </slot>
+        <p class="text-sm opacity-60 text-center md:text-left">
+          Tu tagline aquí — descripción breve de la empresa o proyecto.
+        </p>
+      </m-col>
+
+      <m-col class="flex flex-col items-center md:items-end gap-2">
+        <slot name="links" />
+      </m-col>
+    </m-row>
+
+    <m-row
+      class="flex-col md:flex-row items-center justify-between py-6 border-t gap-4"
+    >
+      <p class="text-xs opacity-50 text-center md:text-left">
+        &copy; <span id="footer-year">2026</span>
+        {siteName} &middot; Todos los derechos reservados
+      </p>
+      <m-col class="flex flex-row gap-6 justify-center md:justify-end">
+        <slot name="legal" />
+      </m-col>
+    </m-row>
+  </m-container>
+</footer>
+
+<script>
+  document.getElementById("footer-year")!.textContent = String(new Date().getFullYear());
+</script>
