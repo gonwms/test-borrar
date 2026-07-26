@@ -1,0 +1,29 @@
+---
+import Icon from "../ui/Icon.astro";
+
+export interface Props {
+  question: string;
+}
+const { question } = Astro.props;
+const contentId = `faq-content-${Math.random().toString(36).slice(2, 11)}`;
+const triggerId = `faq-trigger-${Math.random().toString(36).slice(2, 11)}`;
+---
+
+<details class="w-full px-2 transition-all border-b" id={contentId}>
+  <summary
+    class="flex items-start lg:items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden transition-colors py-4 lg:py-6 font-display font-bold"
+    aria-controls={contentId}
+    id={triggerId}
+  >
+    <h3 class="flex-1">{question}</h3>
+    <span class="flex items-center justify-center transition-transform group-open:hidden">
+      <Icon name="material-symbols:add" />
+    </span>
+    <span class="items-center justify-center hidden transition-transform group-open:flex">
+      <Icon name="material-symbols:remove" />
+    </span>
+  </summary>
+  <div class="mt-0 mb-8 text-sm leading-normal md:text-base opacity-70" role="region" aria-labelledby={triggerId}>
+    <slot />
+  </div>
+</details>
