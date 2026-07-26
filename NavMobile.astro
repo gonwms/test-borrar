@@ -1,0 +1,124 @@
+---
+import Icon from "../ui/Icon.astro";
+import type { NavItem, ServiceItem } from "../../data/navigation";
+
+interface Props {
+  navItems: NavItem[];
+  pathname: string;
+  BASE: string;
+}
+
+const { navItems, pathname, BASE } = Astro.props;
+
+const regularItems: NavItem[] = navItems.filter(
+  (item: NavItem) => !item.dropdown,
+);
+const dropdownItems: NavItem[] = navItems.filter(
+  (item: NavItem) => item.dropdown,
+);
+
+const isActive = (href: string) => {
+  const normalized = href ? (href.endsWith("/") ? href : `${href}/`) : "/";
+  const current = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  return current === normalized;
+};
+---
+
+<div
+  id="mobile-menu"
+  class="fixed inset-0 flex pointer-events-none z-60 md:hidden font-display"
+  aria-hidden="true"
+>
+  <div
+    id="mobile-overlay"
+    class="absolute inset-0 transition-opacity duration-300 opacity-0 bg-black/60"
+  >
+  </div>
+
+  <div
+    id="mobile-panel"
+    class="relative flex flex-col w-4/5 h-full max-w-sm ml-auto overflow-y-auto transition-transform duration-300 translate-x-full bg-brand-bg"
+  >
+    <div class="flex items-center justify-between px-6 py-5 border-b">
+      <img src={`${BASE}images/logo.svg`} alt="Logo" width="198" height="23" class="h-5 w-auto" />
+      <button
+        id="close-btn"
+        class="p-1 bg-transparent border-0 cursor-pointer"
+        aria-label="Cerrar menú"
+      >
+        <Icon name="material-symbols:close" class="size-7" />
+      </button>
+    </div>
+
+    <nav class="flex flex-col px-4 py-4">
+      {
+        regularItems.map((item: NavItem) => (
+          <a
+            href={item.href}
+            class:list={[
+              "flex items-center px-4 py-3.5 rounded-xl font-medium transition-colors no-underline",
+              isActive(item.href!) ? "font-semibold" : "",
+            ]}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+
+      {
+        dropdownItems.map((item: NavItem) => (
+          <div class="pt-4 mt-2 border-t">
+            <p class="px-4 mb-2 text-sm tracking-widest uppercase opacity-50">
+              {item.label}
+            </p>
+            {item.children?.map((svc: ServiceItem) => (
+              <a
+                href={svc.href}
+                class="flex items-center gap-3 px-4 py-3 no-underline transition-colors rounded-xl"
+              >
+                <div class="flex items-center justify-center rounded-full size-9 shrink-0">
+                  <Icon name={svc.icon} class="size-7" />
+                </div>
+                <span class="font-semibold font-display">{svc.label}</span>
+              </a>
+            ))}
+          </div>
+        ))
+      }
+    </nav>
+  </div>
+</div>
+
+<script>
+  const burgerBtn = document.getElementById("burger-btn")!;
+  const closeBtn = document.getElementById("close-btn")!;
+  const mobileMenu = document.getElementById("mobile-menu")!;
+  const mobilePanel = document.getElementById("mobile-panel")!;
+  const mobileOverlay = document.getElementById("mobile-overlay")!;
+
+  const openMobile = () => {
+    mobileMenu.classList.remove("pointer-events-none");
+    mobileMenu.setAttribute("aria-hidden", "false");
+    mobileOverlay.classList.add("opacity-100");
+    mobilePanel.classList.remove("translate-x-full");
+    burgerBtn.setAttribute("aria-expanded", "true");
+  };
+
+  const closeMobile = () => {
+    mobileMenu.classList.add("pointer-events-none");
+    mobileMenu.setAttribute("aria-hidden", "true");
+    mobileOverlay.classList.remove("opacity-100");
+    mobilePanel.classList.add("translate-x-full");
+    burgerBtn.setAttribute("aria-expanded", "false");
+  };
+
+  burgerBtn.addEventListener("click", openMobile);
+  closeBtn.addEventListener("click", closeMobile);
+  mobileOverlay.addEventListener("click", closeMobile);
+  mobilePanel
+    .querySelectorAll("a")
+    .forEach((link) => link.addEventListener("click", closeMobile));
+  document.addEventListener("keydown", (e) => {
+    e.key === "Escape" && closeMobile();
+  });
+</script>
