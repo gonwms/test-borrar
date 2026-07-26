@@ -1,0 +1,148 @@
+---
+import Button from "../ui/Button.astro";
+import Input from "./Input.astro";
+import Textarea from "./Textarea.astro";
+import Select from "./Select.astro";
+import Checkbox from "./Checkbox.astro";
+import Radio from "./Radio.astro";
+
+interface FieldBase {
+  name: string;
+  label?: string;
+  required?: boolean;
+  value?: string;
+  error?: string;
+}
+
+interface InputField extends FieldBase {
+  type: "input";
+  inputType?: string;
+  placeholder?: string;
+  label: string;
+}
+
+interface TextareaField extends FieldBase {
+  type: "textarea";
+  placeholder?: string;
+  rows?: number;
+  label: string;
+}
+
+interface SelectField extends FieldBase {
+  type: "select";
+  options: { value: string; label: string }[];
+  label: string;
+}
+
+interface CheckboxField extends FieldBase {
+  type: "checkbox";
+  checked?: boolean;
+  label: string;
+}
+
+interface RadioField extends FieldBase {
+  type: "radio";
+  options: { value: string; label: string }[];
+  label?: string;
+}
+
+type Field =
+  | InputField
+  | TextareaField
+  | SelectField
+  | CheckboxField
+  | RadioField;
+
+interface Props {
+  fields: Field[];
+  buttonText?: string;
+  class?: string;
+  id?: string;
+  action?: string;
+}
+
+const {
+  fields,
+  buttonText = "Enviar",
+  class: className,
+  id,
+  action,
+} = Astro.props;
+const formId = id ?? `form-${Math.random().toString(36).substring(2, 11)}`;
+---
+
+<form
+  id={formId}
+  class:list={["flex flex-col gap-5", className]}
+  action={action}
+  method={action ? "POST" : undefined}
+  onsubmit={action ? undefined : "event.preventDefault();"}
+>
+  {
+    fields.map((field: Field) => {
+      if (field.type === "input")
+        return (
+          <Input
+            name={field.name}
+            label={field.label}
+            type={field.inputType ?? "text"}
+            placeholder={field.placeholder}
+            required={field.required}
+            value={field.value}
+            error={field.error}
+          />
+        );
+      if (field.type === "textarea")
+        return (
+          <Textarea
+            name={field.name}
+            label={field.label}
+            placeholder={field.placeholder}
+            required={field.required}
+            value={field.value}
+            error={field.error}
+            rows={field.rows}
+          />
+        );
+      if (field.type === "select")
+        return (
+          <Select
+            name={field.name}
+            label={field.label}
+            options={field.options}
+            required={field.required}
+            value={field.value}
+            error={field.error}
+          />
+        );
+      if (field.type === "checkbox")
+        return (
+          <Checkbox
+            name={field.name}
+            label={field.label}
+            required={field.required}
+            checked={field.checked}
+            error={field.error}
+          />
+        );
+      if (field.type === "radio")
+        return (
+          <Radio
+            name={field.name}
+            label={field.label}
+            options={field.options}
+            required={field.required}
+            value={field.value}
+            error={field.error}
+          />
+        );
+      return null;
+    })
+  }
+
+  <Button
+    type="submit"
+    class="bg-brand-beige text-brand-dark w-full justify-between mt-1"
+    >{buttonText}</Button
+  >
+</form>
