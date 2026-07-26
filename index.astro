@@ -1,0 +1,446 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navigation from "../components/layout/Navigation.astro";
+import Footer from "../components/layout/Footer.astro";
+import Carrusel from "../components/layout/Carrusel.astro";
+import Form from "../components/form/Form.astro";
+import Button from "../components/ui/Button.astro";
+import Icon from "../components/ui/Icon.astro";
+import FaqAccordion from "../components/layout/FaqAccordion.astro";
+import StarRating from "../components/ui/StarRating.astro";
+
+const BASE = import.meta.env.BASE_URL;
+
+const formFields = [
+  {
+    type: "input" as const,
+    name: "nombre",
+    label: "Nombre",
+    placeholder: "Tu nombre completo",
+    required: true,
+  },
+  {
+    type: "input" as const,
+    name: "email",
+    label: "Email",
+    inputType: "email",
+    placeholder: "tu@email.com",
+    required: true,
+  },
+  {
+    type: "select" as const,
+    name: "motivo",
+    label: "Motivo de contacto",
+    options: [
+      { value: "consulta", label: "Consulta general" },
+      { value: "presupuesto", label: "Solicitar presupuesto" },
+      { value: "soporte", label: "Soporte técnico" },
+    ],
+  },
+  {
+    type: "textarea" as const,
+    name: "mensaje",
+    label: "Mensaje",
+    placeholder: "Escribí tu mensaje aquí...",
+    rows: 4,
+  },
+  {
+    type: "checkbox" as const,
+    name: "acepta",
+    label: "Acepto los términos y condiciones",
+    required: true,
+  },
+];
+
+const faqItems = [
+  {
+    question: "¿Cómo puedo empezar a usar este template?",
+    answer:
+      "Cloná el repositorio, instalá las dependencias con pnpm install y ejecutá pnpm dev. Todo está listo para empezar a desarrollar.",
+  },
+  {
+    question: "¿Qué tecnologías incluye?",
+    answer:
+      "Astro 5, Tailwind v4, TypeScript, y componentes UI reutilizables como carrusel, formulario, acordeón de FAQs y más.",
+  },
+  {
+    question: "¿Se puede personalizar el diseño?",
+    answer:
+      "Sí. Los colores, tipografías y espaciados se configuran desde Tailwind y los componentes aceptan props para variantes.",
+  },
+  {
+    question: "¿Incluye soporte para SEO?",
+    answer:
+      "Sí, incluye un componente SEO con meta tags, Open Graph y Schema para mejorar la indexación en buscadores.",
+  },
+];
+
+const carouselCards = [
+  {
+    title: "Servicio uno",
+    desc: "Descripción breve del primer servicio o producto destacado.",
+    tag: "Destacado",
+  },
+  {
+    title: "Servicio dos",
+    desc: "Descripción breve del segundo servicio o producto destacado.",
+    tag: "Nuevo",
+  },
+  {
+    title: "Servicio tres",
+    desc: "Descripción breve del tercer servicio o producto destacado.",
+    tag: "Popular",
+  },
+  {
+    title: "Servicio cuatro",
+    desc: "Descripción breve del cuarto servicio o producto destacado.",
+    tag: "Oferta",
+  },
+];
+---
+
+<Layout
+  title="Template — Componentes disponibles"
+  description="Página de referencia que muestra los componentes reutilizables del proyecto: header, footer, carrusel, formulario y módulo foto/texto."
+>
+  <!-- ------------------------------- HEADER ------------------------------- -->
+  <Navigation siteName="Mi Proyecto" pathname="/" />
+
+  <!-- ------------------------------- HERO -------------------------------─ -->
+  <section class="relative pt-40 pb-24 overflow-hidden">
+    <m-container>
+      <m-row class="flex-col items-center text-center gap-6 max-w-3xl mx-auto">
+        <span class="text-sm font-medium uppercase tracking-widest opacity-60"
+          >Template de referencia</span
+        >
+        <h1 class="text-5xl md:text-6xl font-display font-black leading-tight">
+          Componentes<br />listos para usar
+        </h1>
+        <p class="text-lg opacity-70 max-w-xl">
+          Esta página muestra todos los bloques disponibles en el proyecto con
+          contenido . Usala como punto de partida para construir nuevas vistas.
+        </p>
+        <div class="flex gap-4 flex-wrap justify-center">
+          <Button href="#carrusel" class="bg-brand-beige text-brand-dark"
+            >Explorar componentes</Button
+          >
+          <Button href="#formulario" class="bg-brand-dark text-brand-light"
+            >Ver formulario</Button
+          >
+        </div>
+      </m-row>
+    </m-container>
+  </section>
+
+  <!-- ── CARRUSEL ───────────────────────────── -->
+  <section id="carrusel" class="py-20">
+    <m-container>
+      <m-row class="flex-col gap-10">
+        <div class="flex flex-col gap-2">
+          <span class="text-sm font-medium uppercase tracking-widest opacity-60"
+            >Componente</span
+          >
+          <h2 class="text-3xl font-display font-bold">Carrusel</h2>
+          <p class="opacity-60 text-sm">
+            Con navegación lateral, autoplay y paginación.
+          </p>
+        </div>
+
+        <Carrusel
+          slidesPerView={3}
+          gap={24}
+          navigation={true}
+          arrowsPosition="bottom"
+          autoplay={4000}
+          pagination={true}
+        >
+          {
+            carouselCards.map((card) => (
+              <div class="rounded-2xl border p-6 flex flex-col gap-4 h-full">
+                <div class="rounded-xl aspect-video bg-linear-to-br from-neutral-200 to-neutral-100 flex items-center justify-center">
+                  <span class="text-xs opacity-40 font-mono">600 × 340</span>
+                </div>
+                <span class="text-xs font-medium uppercase tracking-widest opacity-50">
+                  {card.tag}
+                </span>
+                <h3 class="text-xl font-display font-bold">{card.title}</h3>
+                <p class="text-sm opacity-60 flex-1">{card.desc}</p>
+                <Button href="#" class="bg-transparent text-brand-dark">
+                  Ver más
+                </Button>
+              </div>
+            ))
+          }
+        </Carrusel>
+      </m-row>
+    </m-container>
+  </section>
+
+  <!-- ── STAR RATING ──────────────────────── -->
+  <section id="star-rating" class="py-20">
+    <m-container>
+      <m-row class="flex-col gap-10">
+        <div class="flex flex-col gap-2">
+          <span class="text-sm font-medium uppercase tracking-widest opacity-60"
+            >Componente</span
+          >
+          <h2 class="text-3xl font-display font-bold">Star Rating</h2>
+          <p class="opacity-60 text-sm">
+            Calificación por estrellas con Rich Snippets. Votos persistidos en
+            KV, JSON-LD inyectado en build time.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Con ratings -->
+          <div class="rounded-2xl border p-6 flex flex-col gap-3">
+            <span
+              class="text-xs font-medium uppercase tracking-widest opacity-40"
+              >Con ratings</span
+            >
+            <h3 class="text-lg font-display font-semibold leading-snug">
+              Guía de Tailwind v4 para principiantes
+            </h3>
+            <StarRating
+              ratingValue={5}
+              reviewCount={15}
+              postUrl="/blog/guia-tailwind-v4"
+            />
+          </div>
+
+          <!-- Sin ratings (estado inicial) -->
+          <div class="rounded-2xl border p-6 flex flex-col gap-3">
+            <span
+              class="text-xs font-medium uppercase tracking-widest opacity-40"
+              >Sin ratings</span
+            >
+            <h3 class="text-lg font-display font-semibold leading-snug">
+              Artículo nuevo sin votos
+            </h3>
+            <StarRating
+              ratingValue={5}
+              reviewCount={0}
+              postUrl="/blog/articulo-nuevo"
+            />
+          </div>
+        </div>
+      </m-row>
+    </m-container>
+  </section>
+
+  <!-- ------------------------------- MÓDULO FOTO / TEXTO ------------------------------- -->
+  <section id="foto-texto" class="py-20">
+    <m-container>
+      <m-row class="flex-col gap-2 mb-10">
+        <span class="text-sm font-medium uppercase tracking-widest opacity-60"
+          >Componente</span
+        >
+        <h2 class="text-3xl font-display font-bold">Módulo foto / texto</h2>
+        <p class="opacity-60 text-sm">
+          Bloque de dos columnas: imagen + contenido. Invertible.
+        </p>
+      </m-row>
+
+      <!-- Variante imagen izquierda -->
+      <m-row class="flex-col md:flex-row items-center gap-12 mb-20">
+        <m-col class="flex-1">
+          <div
+            class="rounded-2xl overflow-hidden aspect-[4/3] bg-gradient-to-br from-neutral-200 to-neutral-100 flex items-center justify-center"
+          >
+            <span class="text-sm opacity-40 font-mono">Imagen 800 × 600</span>
+          </div>
+        </m-col>
+        <m-col class="flex-1 flex flex-col gap-5">
+          <span class="text-xs font-medium uppercase tracking-widest opacity-50"
+            >Subtítulo</span
+          >
+          <h3 class="text-3xl font-display font-bold leading-snug">
+            Título principal del bloque de contenido
+          </h3>
+          <p class="opacity-70 leading-relaxed">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
+            vehicula mi vel ligula tincidunt, at varius nibh lacinia. Fusce id
+            lorem in justo tincidunt gravida.
+          </p>
+          <ul class="flex flex-col gap-2">
+            {
+              [
+                "Punto de valor uno",
+                "Punto de valor dos",
+                "Punto de valor tres",
+              ].map((item) => (
+                <li class="flex items-center gap-3 text-sm">
+                  <span class="size-5 rounded-full bg-current opacity-10 shrink-0" />
+                  {item}
+                </li>
+              ))
+            }
+          </ul>
+          <Button href="#" class="bg-brand-beige text-brand-dark self-start"
+            >Saber más</Button
+          >
+        </m-col>
+      </m-row>
+
+      <!-- Variante imagen derecha (invertida) -->
+      <m-row class="flex-col md:flex-row-reverse items-center gap-12">
+        <m-col class="flex-1">
+          <div
+            class="rounded-2xl overflow-hidden aspect-[4/3] bg-gradient-to-bl from-neutral-200 to-neutral-100 flex items-center justify-center"
+          >
+            <span class="text-sm opacity-40 font-mono">Imagen 800 × 600</span>
+          </div>
+        </m-col>
+        <m-col class="flex-1 flex flex-col gap-5">
+          <span class="text-xs font-medium uppercase tracking-widest opacity-50"
+            >Variante invertida</span
+          >
+          <h3 class="text-3xl font-display font-bold leading-snug">
+            Segunda variante con imagen a la derecha
+          </h3>
+          <p class="opacity-70 leading-relaxed">
+            Pellentesque habitant morbi tristique senectus et netus et malesuada
+            fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae,
+            ultricies eget.
+          </p>
+          <Button href="#" class="bg-brand-dark text-brand-light self-start"
+            >Conocé más</Button
+          >
+        </m-col>
+      </m-row>
+    </m-container>
+  </section>
+
+  <!-- ------------------------------- FORMULARIO ------------------------------- -->
+  <section id="formulario" class="py-20">
+    <m-container>
+      <m-row class="flex-col md:flex-row gap-16 items-start">
+        <m-col class="flex-1 flex flex-col gap-6">
+          <div class="flex flex-col gap-2">
+            <span
+              class="text-sm font-medium uppercase tracking-widest opacity-60"
+              >Componente</span
+            >
+            <h2 class="text-3xl font-display font-bold">
+              Formulario de contacto
+            </h2>
+            <p class="opacity-60 text-sm">
+              Input, select, textarea y checkbox. Acción vía Usebasin o endpoint
+              propio.
+            </p>
+          </div>
+          <div class="flex flex-col gap-4">
+            {
+              [
+                {
+                  icon: "material-symbols:location-on",
+                  label: "Dirección ",
+                  value: "Av. Corrientes 1234, CABA",
+                },
+                {
+                  icon: "material-symbols:call",
+                  label: "Teléfono ",
+                  value: "+54 11 1234-5678",
+                },
+                {
+                  icon: "material-symbols:mail",
+                  label: "Email ",
+                  value: "hola@miprojecto.com",
+                },
+              ].map(({ icon, label, value }) => (
+                <div class="flex gap-3 items-start">
+                  <Icon name={icon} class="size-6" />
+                  <div>
+                    <p class="text-xs opacity-50">{label}</p>
+                    <p class="text-sm font-medium">{value}</p>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </m-col>
+
+        <m-col class="flex-1 rounded-2xl border p-8">
+          <Form
+            fields={formFields}
+            buttonText="Enviar mensaje"
+            id="contact-form"
+          />
+        </m-col>
+      </m-row>
+    </m-container>
+  </section>
+
+  <!-- ------------------------------- FAQS ------------------------------- -->
+  <section id="faqs" class="py-20">
+    <m-container>
+      <m-row class="flex-col gap-2 mx-auto">
+        <span
+          class="text-sm font-medium uppercase tracking-widest opacity-60 text-center"
+          >Componente</span
+        >
+        <h2 class="text-3xl font-display font-bold text-center mb-6">
+          Preguntas frecuentes
+        </h2>
+        {
+          faqItems.map(({ question, answer }) => (
+            <FaqAccordion question={question}>{answer}</FaqAccordion>
+          ))
+        }
+      </m-row>
+    </m-container>
+  </section>
+
+  <!-- ------------------------------- REDES SOCIALES ------------------------------- -->
+  <section id="redes" class="py-20">
+    <m-container>
+      <m-row class="flex-col gap-10 items-center text-center">
+        <div class="flex flex-col gap-2">
+          <span class="text-sm font-medium uppercase tracking-widest opacity-60"
+            >Conectá</span
+          >
+          <h2 class="text-3xl font-display font-bold">Redes sociales</h2>
+          <p class="opacity-60 text-sm max-w-md">
+            Seguinos en nuestras redes para estar al tanto de las novedades.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-4 justify-center">
+          {
+            [
+              { name: "simple-icons:instagram", label: "Instagram", href: "#" },
+              { name: "simple-icons:linkedin", label: "LinkedIn", href: "#" },
+              { name: "simple-icons:github", label: "GitHub", href: "#" },
+              { name: "simple-icons:x", label: "X", href: "#" },
+              { name: "simple-icons:youtube", label: "YouTube", href: "#" },
+            ].map(({ name, label, href }) => (
+              <a
+                href={href}
+                aria-label={label}
+                class="flex items-center justify-center size-12 rounded-full border border-current/20 hover:border-current/40 transition-colors text-current/60 hover:text-current"
+              >
+                <Icon name={name} class="size-6" />
+              </a>
+            ))
+          }
+        </div>
+      </m-row>
+    </m-container>
+  </section>
+
+  <!-- ------------------------------- FOOTER ------------------------------- -->
+  <Footer siteName="Mi Proyecto">
+    <nav
+      slot="links"
+      class="flex flex-row flex-wrap gap-x-6 gap-y-2 text-sm opacity-70"
+    >
+      <a href="#">Inicio</a>
+      <a href="#">Servicios</a>
+      <a href="#">Nosotros</a>
+      <a href="#">Contacto</a>
+    </nav>
+    <Fragment slot="legal">
+      <a href="#" class="text-xs opacity-50 hover:opacity-80">Privacidad</a>
+      <a href="#" class="text-xs opacity-50 hover:opacity-80">Términos</a>
+    </Fragment>
+  </Footer>
+</Layout>
